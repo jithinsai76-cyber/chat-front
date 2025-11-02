@@ -16,7 +16,7 @@ const app = express();
 // Initialize Google Gemini Client
 const genAI = new GoogleGenerativeAI(API_KEY);
 // This is the NEW, corrected code
-const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 // --- MIDDLEWARE ---
 // 1. Body Parser: To read JSON data from the frontend
