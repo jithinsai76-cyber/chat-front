@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // !! IMPORTANT !!
     // Change this to your REAL backend URL from Render
     const productionApiUrl = 'https://server-ai-3.onrender.com'; 
-    const localApiUrl = 'http://localhost:5001';
+    // --- *** FIX 1: Port changed to 3000 *** ---
+    const localApiUrl = 'http://localhost:3000';
 
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE_URL = isLocal ? localApiUrl : productionApiUrl;
@@ -89,16 +90,13 @@ document.addEventListener('DOMContentLoaded', () => {
         messageInput.value = ''; // Clear the input
         displayTypingIndicator(true); // Show "AI is typing..."
 
+        // --- *** NO CHANGE NEEDED HERE, THIS IS ALREADY PERFECT *** ---
         try {
-            // --- *** THIS IS THE FIX *** ---
-            // Use the API_BASE_URL variable to build the full path
             const response = await fetch(`${API_BASE_URL}/chat`, {
-            // --- *** END OF FIX *** ---
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // The new server only needs the message.
                 body: JSON.stringify({ 
                     message: message 
                 }),
@@ -107,13 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
             displayTypingIndicator(false); // Hide "AI is typing..."
 
             if (!response.ok) {
-                // This code is great! It tries to parse the error as JSON.
                 const errorData = await response.json().catch(() => null);
                 const errorMsg = errorData ? errorData.reply : `Network response was not ok (${response.status})`;
                 throw new Error(errorMsg);
             }
 
-            // If the response.ok was true, this line should now work
             const data = await response.json(); 
             displayMessage(data.reply, 'ai');
 
@@ -130,14 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
         messageElement.classList.add('message');
         messageElement.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
         
-        // Use innerText to prevent HTML injection and render newlines
         messageElement.innerText = message; 
         
         chatWindow.appendChild(messageElement);
         chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scroll
     }
 
-    // --- NEW: Typing Indicator Function ---
+    // Function to show/hide the typing indicator
     function displayTypingIndicator(isTyping) {
         let indicator = document.getElementById('typing-indicator');
         if (isTyping) {
@@ -155,14 +150,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // This is the first AI message when the page loads
-    // We moved this to the end to make sure all functions are defined
-    setTimeout(() => {
+    // --- *** FIX 2: NEW FUNCTION TO GET THE WELCOME MESSAGE *** ---
+    // This function runs once when the page loads
+    async function getWelcomeMessage() {
+        // Find the "Connecting..." message and remove it
         const connectingMsg = document.querySelector('.ai-message');
-        if (connectingMsg && connectingMsg.innerText === 'Connecting to your friend... 👋') {
-            connectingMsg.innerText = 'Hi there! 👋 I\'m your AI friend. To make our chat perfect, could you let me know if you are a boy or a girl?';
+        if (connectingMsg) {
+            connectingMsg.remove();
         }
-    }, 1000); // 1-second delay
-});
+        
+        displayTypingIndicator(true); // Show "AI is typing..."
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // Send the special message to trigger the gender prompt
+                body: JSON.stringify({ message: 'init_chat_session' }) 
+            });
 
-// --- *** THIS EXTRA '}' WAS REMOVED *** ---
+            displayTypingIndicator(false);
+            
+            if (!response.ok) {
+                throw new Error('Could not connect to AI. Please refresh.');
+            }
+            
+            const data = await response.json();
+            displayMessage(data.reply, 'ai'); // Display the real welcome message
+
+        } catch (error) {
+            console.error('Initial Fetch Error:', error);
+            displayTypingIndicator(false);
+            displayMessage(`Error: ${error.message}`, 'ai');
+        }
+    }
+    
+    // Run the new welcome function when the page is ready
+    getWelcomeMessage();
+
+});
