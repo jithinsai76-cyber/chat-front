@@ -1,3 +1,5 @@
+// [UPDATED] - client.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const chatForm = document.getElementById('chat-form');
     const messageInput = document.getElementById('message-input');
@@ -5,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const micBtn = document.getElementById('mic-btn'); // New mic button
 
     
-    // --- NEW: Smart API URL ---
+    // --- Smart API URL ---
     // This code checks if you are on localhost or a live server
     
     // !! IMPORTANT !!
@@ -17,10 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = isLocal ? localApiUrl : productionApiUrl;
 
     console.log(`API is set to: ${API_BASE_URL}`);
-    // --- End of NEW ---
+    // --- End of Smart URL ---
 
     
-    // --- NEW: Voice Recognition Setup ---
+    // --- Voice Recognition Setup ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
 
@@ -88,9 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
         displayTypingIndicator(true); // Show "AI is typing..."
 
         try {
-            // --- CRITICAL CHANGE ---
-            // This simple path works now because the server serves this file.
-            const response = await fetch('/chat', {
+            // --- *** THIS IS THE FIX *** ---
+            // Use the API_BASE_URL variable to build the full path
+            const response = await fetch(`${API_BASE_URL}/chat`, {
+            // --- *** END OF FIX *** ---
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -104,12 +107,14 @@ document.addEventListener('DOMContentLoaded', () => {
             displayTypingIndicator(false); // Hide "AI is typing..."
 
             if (!response.ok) {
+                // This code is great! It tries to parse the error as JSON.
                 const errorData = await response.json().catch(() => null);
                 const errorMsg = errorData ? errorData.reply : `Network response was not ok (${response.status})`;
                 throw new Error(errorMsg);
             }
 
-            const data = await response.json();
+            // If the response.ok was true, this line should now work
+            const data = await response.json(); 
             displayMessage(data.reply, 'ai');
 
         } catch (error) {
@@ -159,3 +164,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000); // 1-second delay
 });
+
+// --- *** THIS EXTRA '}' WAS REMOVED *** ---
