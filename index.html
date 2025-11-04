@@ -8,11 +8,12 @@
 </head>
 <body>
     <div id="chat-container">
-        <div id="chat-window">
-            </div>
+        <div id="chat-window"></div>
+        
         <form id="chat-form">
-            <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
-            <button type="submit">Send</button>
+            <input type="text" id="message-input" placeholder="Type or say something..." autocomplete="off">
+            <button type="button" id="mic-btn" title="Use Voice">🎤</button>
+            <button type="submit" title="Send">Send</button>
         </form>
     </div>
     <script src="client.js"></script>
